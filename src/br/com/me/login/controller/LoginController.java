@@ -2,9 +2,13 @@ package br.com.me.login.controller;
 
 import java.util.List;
 
+import javax.servlet.http.HttpSession;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
 import br.com.me.login.model.Usuario;
 import br.com.me.login.model.UsuarioDao;
@@ -17,70 +21,72 @@ public class LoginController {
 	public String cadastoNovoUsuario() {
 		return "front/telaCadastro";
 	}
-	
-	
-	@RequestMapping("save") //Salva novo usuario
-	public String novoUsuario(Usuario usuario) {
+
+	@RequestMapping("home")
+	public String home() {
+		return "front/telaLogin";
+	}
+
+	@RequestMapping("perfil")
+	public String perfil() {
+		return "front/telaPerfil";
+	}
+
+	@RequestMapping("save") // Salva novo usuario
+	public String novoUsuario(Usuario usuario,@RequestParam("file")MultipartFile imagem ,Model model) {
+
+		if (Util.fazerUploadImagem(imagem)) {
+			usuario.setImagem(Util.obterMomentoAtual() + " - " +
+			imagem.getOriginalFilename());
+			}
 		
+		UsuarioDao dao = new UsuarioDao();
+		Util util = new Util();
+
+		usuario.setSenha(util.criptografia(usuario.getSenha()));
+
+		List<String> listaEmail = dao.listarEmail();
+
+		for (String lista : listaEmail) {
+			if (lista.equals(usuario.getEmail())) {
+				model.addAttribute("menssagem2", "Usuario Possui Cadastro");
+
+				return "front/telaLogin";
+			}
+		}
+		model.addAttribute("menssagem2", "Usuario Cadastrado Com Sucesso");
+		dao.salvar(usuario);
+
+		return "front/telaLogin";
+	}
+
+	@RequestMapping("efetuarLogin")
+	public String efetuarLogin(Usuario usuario, HttpSession session, Model model) {
+
 		UsuarioDao dao = new UsuarioDao();
 		Util util = new Util();
 		
 		usuario.setSenha(util.criptografia(usuario.getSenha()));
-	
-		dao.salvar(usuario);
 		
-		return "front/telaLogin";
-	}
-	
-	
-	@RequestMapping("verifica") //Verifica se usuario existe
-	public String verificaLogin(Usuario usuario, Model model) {
+		Usuario usuarioLogado = dao.buscarUsuario(usuario);
+
 		
-		boolean verifica_email = false;
-		boolean verifica_senha = false;
-		
-		Util util = new Util();
-		UsuarioDao dao = new UsuarioDao();
-		
-		String email_digitado = usuario.getEmail();
-		String senha_digitada = util.criptografia(usuario.getSenha()); ;
-		
-		List<String> lista_senha_banco = dao.listarSenha(); 
-		List<String> lista_email_banco = dao.listarEmail(); 
-		
-		System.out.println("aqui");
-		for(String lista_email : lista_email_banco) {
+
+		if (usuarioLogado != null) {
+			session.setAttribute("usuarioLogado", usuarioLogado);
 			
-			if(email_digitado.equals(lista_email)) {
-				verifica_email = true;
-				System.out.println("aqui1");
-			}
-		}
-		
-		for(String lista_senha : lista_senha_banco) {
 			
-			if(senha_digitada.equals(lista_senha)) {
-				verifica_senha = true;
-				System.out.println("aqui2");
-			}
-		}
-		
-		if(verifica_email == true && verifica_senha == true) {
-			
-			System.out.println("aqui3");
-			String email = usuario.getEmail();
-			List<String> lista_usuario = dao.listar(email);
-			
-			System.out.println(lista_usuario);
-			
-			model.addAttribute("usuario", lista_usuario);
-			
-			System.out.println("aqui4");
 			return "front/telaPerfil";
 		}
-		
-		model.addAttribute("mensagem", "SENHA ou EMAIL estão incorretos");
+
+		model.addAttribute("menssagem2", "Não foi encontrado um usuário com o login e senha informados.");
 		return "front/telaLogin";
 	}
-	
+
+	@RequestMapping("logout")
+	public String logout(HttpSession session) {
+		session.invalidate();
+		return "front/telaLogin";
+	}
+
 }

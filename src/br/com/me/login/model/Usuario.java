@@ -22,6 +22,8 @@ public class Usuario {
 	private String senha;
 	@Column
 	private String email;
+	@Column
+	private String imagem;
 	
 	public String getNome() {
 		return nome;
@@ -61,6 +63,14 @@ public class Usuario {
 
 	public void setId(String id) {
 		this.id = id;
+	}
+
+	public String getImagem() {
+		return imagem;
+	}
+
+	public void setImagem(String imagem) {
+		this.imagem = imagem;
 	}
 	
 	

@@ -9,6 +9,7 @@ import javax.persistence.Query;
 
 
 
+
 public class UsuarioDao {
 	
 	private static final String PERSISTENCE_UNIT = "system_login_sha256";
@@ -22,6 +23,8 @@ public class UsuarioDao {
 		manager.close();
 		factory.close();
 	}
+	
+	
 	public List<String> listarSenha() {
 		EntityManagerFactory factory = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT);
 		EntityManager manager = factory.createEntityManager();
@@ -49,24 +52,22 @@ public class UsuarioDao {
 		}
 
 	
-	public List<String> listar(String email) {
+	public Usuario buscarUsuario(Usuario usuario) {
+		
 		EntityManagerFactory factory = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT);
 		EntityManager manager = factory.createEntityManager();
+		Query query = manager.createQuery("FROM Usuario WHERE email LIKE :paramLogin AND senha LIKE :paramSenha");
+		query.setParameter("paramLogin", usuario.getEmail());
+		query.setParameter("paramSenha", usuario.getSenha());
 		
-		Query query = null;
+		List<Usuario> registros = query.getResultList();
+		Usuario obj = null;
 		
-		query = manager.createQuery("FROM Usuario WHERE email LIKE :paramEmail");
-		query.setParameter("paramEmail", "%" + email + "%");
-		
-		
-		System.out.println("aqui44");
-		
-		@SuppressWarnings("unchecked")
-		List<String> lista = query.getResultList();
-		
+		if (!registros.isEmpty()) {
+			obj = (Usuario) registros.get(0);
+		}
 		manager.close();
 		factory.close();
-		
-		return lista;
+		return obj;
 		}
 }

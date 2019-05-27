@@ -17,12 +17,20 @@ http://www.springframework.org/schema/context/spring-context-3.0.xsd">
 		<property name="prefix" value="/WEB-INF/view/" />
 		<property name="suffix" value=".jsp" />
 	</bean>
+	
+	<!-- Upload da imagem e define tamanho da imagem a ser Carregada -->
+	<bean id="multipartResolver"
+		class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<property name="maxUploadSize" value="1000000" />
+	</bean>
 
 	<!-- A linha abaixo é necessária para poder carregar nos JSP os arquivos CSS, imagens, JavaScript e etc -->
 	<mvc:resources mapping="/resources/**" location="/resources/" />
 	<mvc:annotation-driven />
 
-	
+	<mvc:interceptors>
+		<bean class="br.com.me.login.util.AutorizadorInterceptor" />
+	</mvc:interceptors>
 
 
 </beans>
